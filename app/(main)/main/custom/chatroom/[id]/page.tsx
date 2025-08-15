@@ -226,49 +226,24 @@ export default function ChatroomPage() {
         )
       }
 
-
-      
       // 2단계: AI 응답 요청
-      const aiRes = await fetch(`/api/messages/ai-reply?conversationId=${id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-
-      console.log('AI 응답 요청 응답 상태:', aiRes.status)
-
-      if (!aiRes.ok) {
-        const errorText = await aiRes.text()
-        console.error('=== AI 응답 요청 실패 ===')
-        console.error('상태 코드:', aiRes.status)
-        console.error('오류 내용:', errorText)
-        
-        // JSON 파싱 시도
-        try {
-          const errorJson = JSON.parse(errorText)
-          console.error('파싱된 오류:', errorJson)
-        } catch {
-          console.error('JSON 파싱 실패, 원문:', errorText)
-        }
-        
-        setError(`AI 응답 요청 실패: ${aiRes.status} ${errorText}`)
-        return // 사용자 메시지는 이미 전송되었으므로 제거하지 않음
-      }
-
+      const aiRes = await fetch(`/api/messages/ai-reply?conversationId=${id}`,{
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${accessToken}`,
+  },
+});
       const aiData = await aiRes.json()
-
-      
-      const bundle = normalizeAiReply(aiData)
       // AI 응답만 추가
-      const aiMessages = bundle.filter(msg => msg.role === 'AI')
-      if (aiMessages.length > 0) {
-        setMessages(prev => [...prev, ...aiMessages])
-        console.log('AI 메시지 화면에 추가됨:', aiMessages)
-      } else {
-        console.warn('AI 응답에서 AI 메시지를 찾을 수 없음')
-      }
+     if (aiData?.content && aiData.content.trim()) {
+  setMessages(prev => [...prev, {
+    messageId: String(aiData.messageId ?? `ai_${Date.now()}`),
+    role: 'AI',
+    content: aiData.content,
+    createdAt: aiData.createdAt ?? new Date().toISOString(),
+  }]);
+}
 
     } catch (e) {
       setError('네트워크 오류로 메시지를 전송할 수 없습니다')
@@ -326,7 +301,7 @@ export default function ChatroomPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col max-w-[375px]">
       {/* Header */}
       <div className="bg-white border-b border-blue-200 px-4 py-3 sticky top-0 z-10">
         <div className="flex items-center justify-between w-full">
@@ -408,7 +383,6 @@ export default function ChatroomPage() {
                 <div className="text-sm font-medium text-black/80 mb-1">
                   {isMine ? '' : (myAI?.name ?? 'AI')}
                 </div>
-
                 <div
                   className={
                     `p-3 sm:p-4 rounded-2xl border shadow-[0_1px_2px_rgba(0,0,0,.04)] ` +
@@ -458,7 +432,7 @@ export default function ChatroomPage() {
       <div className="bg-blue-50 px-4 py-4 border-t border-gray-200">
         <div className="flex items-center justify-center space-x-4">
           <button
-            className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm"
+            className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm flex-shrink-0"
             onClick={fetchMessages}
             aria-label="Refresh messages"
             disabled={loading}
@@ -492,7 +466,7 @@ export default function ChatroomPage() {
           </div>
 
           <button
-            className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center shadow-lg disabled:opacity-50"
+            className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-lg disabled:opacity-50 flex-shrink-0"
             onClick={() => console.log('record')}
             aria-label="Record"
             disabled={loading}
@@ -502,7 +476,6 @@ export default function ChatroomPage() {
             </svg>
           </button>
         </div>
-
         <div className="flex justify-center mt-2">
           <div className="w-32 h-1 bg-black rounded-full" />
         </div>

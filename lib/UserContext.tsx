@@ -38,16 +38,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [accessToken, _setAccessToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('accessToken');
-    if (saved) _setAccessToken(saved);
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('accessToken');
+      
+      if (saved) {
+
+        _setAccessToken(saved);
+        
+        // 쿠키에도 저장 (API 요청에서 사용)
+        const cookieValue = `accessToken=${encodeURIComponent(saved)}; path=/; max-age=86400; SameSite=Lax`;
+        document.cookie = cookieValue;
+
+      } else {
+
+      }
+    }
   }, []);
 
   const setAccessToken = (token: string | null) => {
     if (token) {
       localStorage.setItem('accessToken', token);
+      
+      // 쿠키에도 저장 (API 요청에서 사용)
+      const cookieValue = `accessToken=${encodeURIComponent(token)}; path=/; max-age=86400; SameSite=Lax`;
+      document.cookie = cookieValue;
+      
       _setAccessToken(token);
     } else {
       localStorage.removeItem('accessToken');
+      
+      // 쿠키도 삭제
+      document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      
       _setAccessToken(null);
     }
   };

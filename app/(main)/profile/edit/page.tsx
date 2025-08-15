@@ -80,7 +80,10 @@ export default function ProfileEditPage() {
   const ext = file.name.split('.').pop()!;
   const presignRes = await fetch('/api/files/presigned-url', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
     body: JSON.stringify({ fileType: file.type, fileExtension: ext,fileName: file.name }),
   })
   const { url: uploadUrl } = await presignRes.json();

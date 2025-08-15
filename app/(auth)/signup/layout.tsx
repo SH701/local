@@ -1,11 +1,11 @@
-import { SignupProvider } from '@/lib/signup-context';
+import { AuthProvider } from '@/lib/UserContext';
 
 export const metadata = { title: 'Sign up' };
 
 export default function SignupLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SignupProvider>
+    <AuthProvider>
       <div className="min-h-screen bg-white">{children}</div>
-    </SignupProvider>
+    </AuthProvider>
   );
 }

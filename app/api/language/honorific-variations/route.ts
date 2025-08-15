@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    // Authorization 헤더 체크
     const token = req.headers.get('authorization');
     if (!token) {
       return NextResponse.json(
@@ -10,18 +9,16 @@ export async function POST(req: NextRequest) {
         { status: 401 }
       );
     }
-    const backendRes = await fetch('http://localhost:8080/api/messages/ai-reply', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization:`Bearer ${token}`, 
-      },
+    const backendRes = await fetch('http//localhost:8080/api/language/honorific-variations',{
+        method:"GET",
+        headers:{
+            Authorization:token,
+        }
     });
-
     const data = await backendRes.json();
-    return NextResponse.json(data, { status: backendRes.status });
+   return NextResponse.json(data, { status: backendRes.status });
   } catch (error) {
-    console.error('Error in /api/messages/ai-reply:', error);
+    console.error('Error in GET /api/language/honorific-variations:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }

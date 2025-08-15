@@ -1,30 +1,28 @@
 // app/api/conversations/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
-const API = process.env.API_URL ?? 'http://localhost:8080';
-
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params; // ✅ await 필요
-
-  const token = req.headers.get('authorization');
-  if (!token) {
-    return NextResponse.json({ error: 'Authorization token is missing' }, { status: 401 });
-  }
-
   try {
-    const upstream = await fetch(`${API}/api/conversations/${id}`, {
+    const { id } = await params;
+
+    const token = req.headers.get('authorization');
+    if (!token) {
+      return NextResponse.json({ error: 'Authorization token is missing' }, { status: 401 });
+    }
+
+    const backendRes = await fetch(`http://localhost:8080/api/conversations/${id}`, {
       headers: { authorization: token },
       cache: 'no-store',
     });
 
-    const body = await upstream.text();
+    const body = await backendRes.text();
     return new NextResponse(body, {
-      status: upstream.status,
+      status: backendRes.status,
       headers: {
-        'content-type': upstream.headers.get('content-type') ?? 'application/json',
+        'content-type': backendRes.headers.get('content-type') ?? 'application/json',
       },
     });
   } catch (e) {
