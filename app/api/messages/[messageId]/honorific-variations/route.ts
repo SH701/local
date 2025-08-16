@@ -1,29 +1,28 @@
-// app/api/messages/ai-reply/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
 
 const API_URL = process.env.API_URL || 'http://localhost:8080';
 
-export async function POST(req: NextRequest) {
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ messageId: string }> }  // ⬅ Promise 타입
+) {
   try {
-    // query에서 conversationId 읽기
-    const { searchParams } = new URL(req.url);
-    const conversationId = searchParams.get('conversationId');
+    const { messageId } = await context.params; // ⬅ await 필수
+    console.log("👉 messageId:", messageId)
 
-    if (!conversationId) {
+    if (!messageId) {
       return NextResponse.json(
-        { error: 'conversationId is required' },
+        { error: 'messageId is required' },
         { status: 400 }
       );
     }
 
-    // Authorization 헤더 확인
     let auth = req.headers.get('authorization');
     if (!auth || /Bearer\s+(null|undefined)?$/i.test(auth)) {
       const token = req.cookies.get('accessToken')?.value;
-      if (token) {
-        auth = `Bearer ${token}`;
-      }
+      if (token) auth = `Bearer ${token}`;
     }
+
     if (!auth) {
       return NextResponse.json(
         { error: 'Authorization token is missing' },
@@ -31,27 +30,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Spring Boot API 호출
     const backendRes = await fetch(
-      `${API_URL}/api/messages/ai-reply?conversationId=${conversationId}`,
+      `${API_URL}/api/messages/${messageId}/honorific-variations`,
       {
-        method: 'POST', // body 없이 POST
+        method: 'GET',
         headers: { Authorization: auth },
       }
     );
 
-    // 백엔드 응답 처리
     const text = await backendRes.text();
     let data;
     try {
-      data = JSON.parse(text);
+      data = text ? JSON.parse(text) : null;
     } catch {
-      data = { raw: text };
+      data = text;
     }
 
     return NextResponse.json(data, { status: backendRes.status });
   } catch (error) {
-    console.error('Error in /api/messages/ai-reply:', error);
+    console.error(
+      'Error in GET /api/messages/[messageId]/honorific-variations:',
+      error
+    );
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }

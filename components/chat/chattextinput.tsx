@@ -33,21 +33,16 @@ export default function ChatTextInput() {
 
   return (
     <div className="flex w-[340px] px-2 items-center gap-1 flex-shrink-0 rounded-[99px] border border-blue-200 bg-white h-13">
-      <Link href="/main/honorific" className="flex gap-4">
+      <Link href="/main/honorific" className="flex gap-2">
       <MovingEyesIcon />
       <input
         type="text"
-        className="flex-1 outline-none placeholder:text-gray-500 placeholder:text-sm bg-transparent"
-        placeholder="Enter a phrase you want to make more polite!"
+        className="flex-1 outline-none placeholder:text-gray-500 placeholder:text-xs bg-transparent"
+        placeholder="Enter a phrase you want to make polite!"
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}
       />
-      <button
-        className="text-blue-500 hover:text-blue-600 transition-colors p-1"
-      >
-        <MicIcon className="w-5 h-5" />
-      </button>
       </Link>
     </div>
   );
