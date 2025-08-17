@@ -10,7 +10,7 @@ type Slide = {
   title: string;
   desc: string;
   icon: ComponentType; // ✅ React 컴포넌트 타입
-  img?: string;        // ✅ 선택적 속성
+  img?: string;   
 };
 
 export const slides: Slide[] = [

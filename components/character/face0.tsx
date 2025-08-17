@@ -1,3 +1,5 @@
+"use client"
+
 export default function Face0(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg

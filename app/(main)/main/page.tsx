@@ -94,11 +94,6 @@ export default function Main() {
         <div className="px-4 py-2">
           <Slider />
         </div>
-
-        {/* 롤플레이 섹션 */}
-        <div className="px-4 py-2">
-          <RoleplaySlider />
-        </div>
         
         {/* 채팅 입력 섹션 */}
         <div className=" px-4 pb-20">

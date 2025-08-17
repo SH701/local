@@ -195,9 +195,9 @@ export default function ProfileEditPage() {
             />
           ) : profileImageUrl ? (
             (() => {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-              const C = FACES.find(f => f.id === profileImageUrl)?.Component!;
-              return <C className="w-full h-full" />;
+              
+             const C = FACES.find(f => f.id === profileImageUrl)?.Component;
+return C ? <C className="w-full h-full" /> : <div className="w-full h-full bg-blue-100" />;
             })()
           ) : (
             <div className="w-full h-full bg-blue-100" />

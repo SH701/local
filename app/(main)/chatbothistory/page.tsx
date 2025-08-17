@@ -13,6 +13,8 @@ import { ChevronRightIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid
 import { AnimatePresence, motion } from 'framer-motion';
 import FeedbackSection from '@/components/bothistory/Feedbacksection';
 
+
+type Filter = 'done' | 'in-progress';
 const situationOptions = {
   BOSS: [
     { value: 'BOSS1', label: 'Apologizing for a mistake at work.' },
@@ -57,7 +59,7 @@ export default function ChatBothistoryPage() {
   const [selectedPersonaId, setSelectedPersonaId] = useState<number | string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedFilter, setSelectedFilter] = useState<'done' | 'in-progress'>('done');
+  const [selectedFilter, setSelectedFilter] = useState<Filter|null>(null);
   const [expanded, setExpanded] = useState<Record<string | number, boolean>>({}); // ✅ 각 채팅별 열림 상태
 
   const filterMap: Record<'done' | 'in-progress', string> = {
@@ -68,74 +70,39 @@ export default function ChatBothistoryPage() {
   const normalizeConversations = (arr: any): Conversation[] =>
     (Array.isArray(arr) ? arr : []).filter(Boolean).filter((c) => !!c?.aiPersona);
 
-  const loadPersonasFromConversations = useCallback(async () => {
-    if (!accessToken) return;
-    const headers = { Authorization: `Bearer ${accessToken}` };
+useEffect(() => {
+  if (!accessToken) return;
 
-    const toSlides = (convos: Conversation[]): PersonaSlide[] => {
-      const map = new Map<string | number, PersonaSlide>();
-      for (const c of convos) {
-        const ai: any = c?.aiPersona;
-        if (!ai) continue;
-        const id = ai.id ?? ai.personaId ?? ai.name;
-        if (id == null || map.has(id)) continue;
-        map.set(id, {
-          personaId: id,
-          name: ai.name || 'Unknown',
-          profileImageUrl: typeof ai.profileImageUrl === 'string' ? ai.profileImageUrl : '',
-        });
-      }
-      return Array.from(map.values());
-    };
+  setLoading(true);
+  setError(null);
 
-    try {
-      const allRes = await fetch(`/api/conversations?status=ALL&page=1&size=200`, { headers, cache: 'no-store' });
-      if (allRes.ok) {
-        const allData = await allRes.json();
-        const slides = toSlides(normalizeConversations(allData?.content));
-        setSliderItems(([{ isAdd: true }, ...slides] as PersonaSlide[]));
-        return;
-      }
+  let query = "/api/conversations?sortBy=CREATED_AT_DESC&page=1&size=1000";
+  if (selectedFilter === "done" || selectedFilter === "in-progress") {
+    query += `&status=${filterMap[selectedFilter]}`;
+  }
 
-      // fallback: ENDED + ACTIVE
-      const [endedRes, activeRes] = await Promise.all([
-        fetch(`/api/conversations?status=ENDED&page=1&size=200`, { headers, cache: 'no-store' }),
-        fetch(`/api/conversations?status=ACTIVE&page=1&size=200`, { headers, cache: 'no-store' }),
-      ]);
-
-      const [endedJson, activeJson] = await Promise.all([
-        endedRes.ok ? endedRes.json() : { content: [] },
-        activeRes.ok ? activeRes.json() : { content: [] },
-      ]);
-
-      const ended = normalizeConversations(endedJson?.content);
-      const active = normalizeConversations(activeJson?.content);
-      const slides = toSlides([...active, ...ended]);
-      setSliderItems(([{ isAdd: true }, ...slides] as PersonaSlide[]));
-    } catch {
-      setSliderItems([{ isAdd: true }]);
-    }
-  }, [accessToken]);
-
-  useEffect(() => {
-    loadPersonasFromConversations();
-  }, [loadPersonasFromConversations]);
-
-  useEffect(() => {
-    if (!accessToken) return;
-    setLoading(true);
-    setError(null);
-    const status = filterMap[selectedFilter];
-
-    fetch(`/api/conversations?status=${status}&page=1&size=100`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      cache: 'no-store',
-    })
-      .then((res) => res.json())
-      .then((data) => setHistory(normalizeConversations(data?.content)))
-      .catch(() => setError('불러오기 실패'))
-      .finally(() => setLoading(false));
-  }, [accessToken, selectedFilter]);
+  fetch(query, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+    .then(async (res) => {
+  if (!res.ok) {
+    const errText = await res.text(); // 서버가 보낸 에러 body
+    throw new Error(`${res.status} ${res.statusText}: ${errText}`);
+  }
+  return res.json();
+})
+.then((data) => {
+  const sorted = normalizeConversations(data?.content).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+  setHistory(sorted);
+})
+.catch((err) => {
+  console.error("API 호출 에러:", err);
+  setError(err.message);
+})
+.finally(() => setLoading(false));
+}, [accessToken, selectedFilter]);
 
   useEffect(() => {
     setFiltered(history);
@@ -177,6 +144,9 @@ export default function ChatBothistoryPage() {
   const toggleExpand = (id: number | string) => {
     setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
   };
+ const handleFilterClick = (filter: Filter) => {
+  setSelectedFilter((prev) => (prev === filter ? null : filter));
+};
 
   return (
     <div className="bg-gray-100 w-full flex flex-col pt-10">
@@ -206,7 +176,6 @@ export default function ChatBothistoryPage() {
 
       <div className="mb-4 p-6">
         <PersonaSlider
-          items={sliderItems}
           onAdd={() => router.push('/main/custom')}
           visibleCount={5}
           itemSize={56}
@@ -228,26 +197,26 @@ export default function ChatBothistoryPage() {
       <div className="mb-6 px-6">
         <div className="flex items-center justify-between">
           <div className="flex space-x-2">
-            <button
-              onClick={() => setSelectedFilter('done')}
-              className={`px-3 py-1 rounded-full border text-xs font-medium transition-colors ${
-                selectedFilter === 'done'
-                  ? 'border-blue-500 text-blue-500 bg-white'
-                  : 'border-gray-300 text-gray-500 bg-white'
-              }`}
-            >
-              Done
-            </button>
-            <button
-              onClick={() => setSelectedFilter('in-progress')}
-              className={`px-4 py-1 rounded-full border text-xs font-medium transition-colors ${
-                selectedFilter === 'in-progress'
-                  ? 'border-blue-500 text-blue-500 bg-white'
-                  : 'border-gray-300 text-gray-500 bg-white'
-              }`}
-            >
-              In progress
-            </button>
+           <button
+    onClick={() => handleFilterClick('done')}
+    className={`px-3 py-1 rounded-full border text-xs font-medium transition-colors ${
+      selectedFilter === 'done'
+        ? 'border-blue-500 text-blue-500 bg-white'
+        : 'border-gray-300 text-gray-500 bg-white'
+    }`}
+  >
+    Done
+  </button>
+  <button
+    onClick={() => handleFilterClick('in-progress')}
+    className={`px-4 py-1 rounded-full border text-xs font-medium transition-colors ${
+      selectedFilter === 'in-progress'
+        ? 'border-blue-500 text-blue-500 bg-white'
+        : 'border-gray-300 text-gray-500 bg-white'
+    }`}
+  >
+    In progress
+  </button>
           </div>
         </div>
       </div>
