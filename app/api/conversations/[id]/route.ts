@@ -1,5 +1,5 @@
 // app/api/conversations/[id]/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   req: NextRequest,
@@ -8,25 +8,76 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const token = req.headers.get('authorization');
+    const token = req.headers.get("authorization");
     if (!token) {
-      return NextResponse.json({ error: 'Authorization token is missing' }, { status: 401 });
+      return NextResponse.json(
+        { error: "Authorization token is missing" },
+        { status: 401 }
+      );
     }
 
-    const backendRes = await fetch(`http://localhost:8080/api/conversations/${id}`, {
-      headers: { authorization: token },
-      cache: 'no-store',
-    });
+    const backendRes = await fetch(
+      `http://localhost:8080/api/conversations/${id}`,
+      {
+        headers: { authorization: token },
+        cache: "no-store",
+      }
+    );
 
     const body = await backendRes.text();
     return new NextResponse(body, {
       status: backendRes.status,
       headers: {
-        'content-type': backendRes.headers.get('content-type') ?? 'application/json',
+        "content-type":
+          backendRes.headers.get("content-type") ?? "application/json",
       },
     });
   } catch (e) {
-    console.error('Error in GET /api/conversations/[id]:', e);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error("Error in GET /api/conversations/[id]:", e);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = params;
+
+    const token = req.headers.get("authorization");
+    if (!token) {
+      return NextResponse.json(
+        { error: "Authorization token is missing" },
+        { status: 401 }
+      );
+    }
+
+    const backendRes = await fetch(
+      `http://localhost:8080/api/conversations/${id}`,
+      {
+        method: "DELETE",
+        headers: { authorization: token },
+      }
+    );
+
+    if (!backendRes.ok) {
+      const errorText = await backendRes.text();
+      return NextResponse.json(
+        { error: errorText || "Failed to delete conversation" },
+        { status: backendRes.status }
+      );
+    }
+
+    return new NextResponse(null, { status: backendRes.status }); // 200 or 204
+  } catch (e) {
+    console.error("Error in DELETE /api/conversations/[id]:", e);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
