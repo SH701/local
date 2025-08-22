@@ -8,6 +8,19 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/lib/UserContext";
 
+const intimacyMap = {
+  0: "lowIntimacy",
+  1: "mediumIntimacy",
+  2: "highIntimacy",
+};
+
+// formality 변환
+const formalityMap = {
+  0: "lowFormality",
+  1: "mediumFormality",
+  2: "highFormality",
+};
+
 export default function HonorificHelper() {
   const { accessToken } = useAuth();
   const router = useRouter();
@@ -22,9 +35,9 @@ export default function HonorificHelper() {
   >("mediumFormality");
 
   const [intimacy, setIntimacy] = useState<
-    | "lowIntimacyExpressions"
+    | "closeIntimacyExpressions"
     | "mediumIntimacyExpressions"
-    | "highIntimacyExpressions"
+    | "distantIntimacyExpressions"
   >("mediumIntimacyExpressions");
 
   const handleTranslate = async () => {
@@ -36,15 +49,17 @@ export default function HonorificHelper() {
           source
         )}`,
         {
+          method: "GET",
           headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
       if (!res.ok) throw new Error("Request failed");
       const data = await res.json();
+
       setAllResults(data);
       setExplain(data.explain);
 
-      const selected = data[intimacy]?.[formality] ?? "변환 결과 없음";
+      const selected = data?.[intimacy]?.[formality] ?? "변환 결과 없음";
       setResult(selected);
     } catch (e) {
       console.error(e);
@@ -52,9 +67,34 @@ export default function HonorificHelper() {
       setLoading(false);
     }
   };
+  const handleTTS = async () => {
+    try {
+      if (!result) return;
+
+      const res = await fetch("/api/language/tts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ text: result }),
+      });
+
+      if (!res.ok) throw new Error("TTS 요청 실패");
+
+      const audioUrl = await res.text();
+
+      const audio = new Audio(audioUrl);
+      audio.play();
+
+      return audioUrl;
+    } catch (e) {
+      console.error("TTS 에러:", e);
+    }
+  };
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col max-w-[375px] mx-auto overflow-y-auto">
+    <div className="h-screen bg-gray-50 flex flex-col w-full overflow-y-auto">
       {/* 헤더 */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
         <button
@@ -150,7 +190,7 @@ export default function HonorificHelper() {
               />
             )}
             <div className="flex justify-end">
-              <button onClick={handleTranslate} className="cursor-pointer">
+              <button onClick={handleTTS} className="cursor-pointer">
                 <Image
                   src="/etc/volume_up.svg"
                   alt="sound"

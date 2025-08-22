@@ -50,15 +50,18 @@ export default function Main() {
   }, [accessToken]);
 
   return (
-    <div className="min-h-screen bg-blue-50 flex flex-col max-w-[375px] mx-auto">
+    <div
+      className="min-h-screen bg-blue-50 flex flex-col w-full overflow-x-hidden overflow-y-auto"
+      style={{ paddingBottom: "calc(153px + env(safe-area-inset-bottom))" }}
+    >
       {/* 메인 콘텐츠 */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col ">
         {/* 환영 섹션 */}
-        <div className="w-full px-4 py-8 text-white bg-[#3B6BF0]">
+        <div className="w-full px-8 py-8 text-white bg-[#3B6BF0] ">
           <Logo />
           <div className="flex justify-between items-start pt-4">
             <div className="flex flex-col gap-2">
-              <div className="flex gap-16">
+              <div className="flex gap-13">
                 <div className="flex flex-col gap-4">
                   <h1 className="font-bold text-white text-2xl leading-[130%]">
                     Hi, {profile?.nickname || "Noonchi"}!
@@ -75,10 +78,10 @@ export default function Main() {
                   height={100}
                 />
               </div>
-              <Link href="/main/custom">
+              <Link href="/main/custom" >
                 <button
                   className="
-                  mt-2 h-10 px-5 w-[334px] cursor-pointer
+                  mt-2 h-10 px-5 w-[334px]
                   flex items-center justify-center gap-2 
                   bg-white text-blue-500 text-sm font-semibold 
                   rounded-lg shadow-md hover:bg-gray-50 transition-colors duration-200

@@ -216,10 +216,6 @@ export default function ProfilePage() {
                 </Link>
               ))}
             </div>
-          </div>
-
-          {/* 로그아웃 버튼 */}
-          <div className="px-4 pt-6 pb-6">
             <button
               onClick={handleLogout}
               className="w-full py-4 text-gray-600 text-base font-medium font-pretendard leading-[130%] underline hover:text-gray-800 transition-colors cursor-pointer"

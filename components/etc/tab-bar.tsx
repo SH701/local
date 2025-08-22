@@ -13,7 +13,7 @@ export default function TabBar() {
   const pathname = usePathname();
 
   return (
-    <div className="fixed bottom-0 inset-x-0 flex justify-center bg-transparent">
+    <div className="fixed bottom-0 inset-x-0 flex justify-center bg-transparent ">
       <div className="w-[381px] bg-white rounded-t-2xl shadow-[0_-4px_10px_0_rgba(0,0,0,0.08)] border border-gray-100">
         {pathname === "/main" && (
           <div className=" px-4 mb-4">

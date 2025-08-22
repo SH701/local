@@ -89,11 +89,38 @@ export default function MessageItem({
     }
   };
 
+  const handleTTS = async (messageId: string) => {
+    try {
+      if (!messageId) return; // ✅ messageId 없으면 실행 안 함
+
+      const res = await fetch(`/api/messages/${messageId}/tts`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken") ?? ""}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`TTS 요청 실패: ${res.status}`);
+      }
+
+      const audioUrl = await res.text();
+
+      const audio = new Audio(audioUrl);
+      audio.play();
+
+      return audioUrl;
+    } catch (err) {
+      console.error("handleTTS error:", err);
+    }
+  };
+  const isLastMessage = m.messageId === m[m.length]?.messageId;
+
   return (
     <div
-      className={`flex  mb-4 ${
-        isMine ? "justify-center items-start" : " items-start justify-start"
-      } gap-2`}
+      className={`flex mb-4 ${
+        isMine ? "justify-center items-start" : "items-start justify-start"
+      } ${isLastMessage ? "pb-30" : ""} gap-2`}
     >
       {/* 상대방 프로필 */}
       {!isMine && (
@@ -177,29 +204,38 @@ export default function MessageItem({
 
             {/* 번역/tts 버튼 (상대 메시지일 때만) */}
             {!isMine && (
-              <div className="flex items-center gap-2">
+              <div className="flex justify-between gap-1">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleTTS(m.messageId)}
+                    disabled={loadingFeedbacks[m.messageId]}
+                    className="cursor-pointer"
+                  >
+                    <Image
+                      src="/etc/volume_up.svg"
+                      alt="tts"
+                      width={20}
+                      height={20}
+                    />
+                  </button>
+                  <button
+                    onClick={() => handleTranslate(m.messageId)}
+                    disabled={loadingFeedbacks[m.messageId]}
+                    className="cursor-pointer"
+                  >
+                    <Image
+                      src="/etc/language.svg"
+                      alt="translate"
+                      width={20}
+                      height={20}
+                    />
+                  </button>
+                </div>
                 <button
-                  disabled={loadingFeedbacks[m.messageId]}
-                  className="cursor-pointer"
+                  className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs hover:bg-blue-700 flex-shrink-0 font-pretendard transition-colors"
+                  onClick={handleClick}
                 >
-                  <Image
-                    src="/etc/volume_up.svg"
-                    alt="tts"
-                    width={20}
-                    height={20}
-                  />
-                </button>
-                <button
-                  onClick={() => handleTranslate(m.messageId)}
-                  disabled={loadingFeedbacks[m.messageId]}
-                  className="cursor-pointer"
-                >
-                  <Image
-                    src="/etc/language.svg"
-                    alt="translate"
-                    width={20}
-                    height={20}
-                  />
+                  Honorific Slider
                 </button>
               </div>
             )}
@@ -208,7 +244,7 @@ export default function MessageItem({
             {isMine && (
               <div className="flex items-end justify-end gap-2">
                 <button
-                  className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-700 flex-shrink-0 font-pretendard transition-colors"
+                  className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs hover:bg-blue-700 flex-shrink-0 font-pretendard transition-colors"
                   onClick={handleClick}
                 >
                   Honorific Slider
@@ -252,7 +288,7 @@ export default function MessageItem({
         )}
 
         {/* 존댓말 로딩 */}
-        {isMine && loading[m.messageId] && (
+        {loading[m.messageId] && (
           <div className="-mt-6 p-3 rounded-2xl bg-gray-600 text-white text-sm flex items-center gap-2 w-full">
             <div className="pt-6 flex gap-3">
               <svg
@@ -281,7 +317,7 @@ export default function MessageItem({
         )}
 
         {/* 존댓말 결과 */}
-        {isMine && honorificResults[m.messageId] && !loading[m.messageId] && (
+        {honorificResults[m.messageId] && !loading[m.messageId] && (
           <HonorificSlider
             results={honorificResults[m.messageId] as HonorificResults}
             value={sliderValues[m.messageId] ?? 1}
