@@ -317,12 +317,12 @@ export default function Slider() {
         </div>
       </div>
       {showex && (
-        <div className="text-[13px] w-[296px] px-2 py-3 rounded-lg mb-6 border-gray-200 border bg-gray-100 text-center   text-gray-700">
+        <div className="text-[13px] w-[296px] px-2 py-3 rounded-lg mb-3 border-gray-200 border bg-gray-100 text-center   text-gray-700">
           {currentSentence.explanation}
         </div>
       )}
       {showInfo && (
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-2">
           <span className="inline-flex items-center bg-white px-3 py-1 text-xs text-gray-600 rounded-full shadow border">
             <InformationCircleIcon className="w-4 h-4 mr-1 text-blue-600" />
             Move the slider to match your situation
@@ -330,7 +330,7 @@ export default function Slider() {
         </div>
       )}
       {/* 슬라이더 박스 */}
-      <div className="w-[335px] px-6 max-w-md mx-auto border rounded-xl border-blue-400 bg-[#EFF6FF] pb-6">
+      <div className="w-[335px] px-6 max-w-md mx-auto  rounded-xl   pb-6">
         <div className="pt-2">
           <span
             className="font-pretendard"
@@ -364,14 +364,14 @@ export default function Slider() {
                 height: "8px",
                 flexShrink: 0,
                 aspectRatio: "1/1",
-                backgroundColor: "var(--Color-Blue-200, #BFDBFE)",
+                backgroundColor: "var(--Color-Blue-200, #DEEBFF)",
                 borderRadius: "50%",
-                marginLeft: i === 0 ? "4px" : i === max ? "-4px" : "0px",
+                marginLeft: i === 0 ? "8px" : i === fMax ? "-8px" : "-4px",
               }}
             />
           ))}
           <div
-            className="absolute inset-y-0 left-0 bg-blue-600 rounded-full transition-all duration-300 ease-out"
+            className="absolute inset-y-0 left-0 bg-[#7188AB] rounded-full transition-all duration-300 ease-out"
             style={{
               width: `${percent}%`,
               height: "16px",
@@ -388,7 +388,7 @@ export default function Slider() {
                 height: "28px",
                 flexShrink: 0,
                 backgroundColor: "#FFF",
-                border: "1px solid var(--Color-Blue-700, #1D4ED8)",
+                border: "1px solid black",
                 filter: "drop-shadow(0 4px 4px rgba(59, 107, 240, 0.10))",
                 transform: "translateX(-50%)",
               }}
@@ -461,14 +461,14 @@ export default function Slider() {
                 height: "8px",
                 flexShrink: 0,
                 aspectRatio: "1/1",
-                backgroundColor: "var(--Color-Blue-200, #BFDBFE)",
+                backgroundColor: "var(--Color-Blue-200, #DEEBFF)",
                 borderRadius: "50%",
-                marginLeft: i === 0 ? "4px" : i === fMax ? "-4px" : "0px",
+                marginLeft: i === 0 ? "8px" : i === fMax ? "-8px" : "-4px",
               }}
             />
           ))}
           <div
-            className="absolute inset-y-0  not-[]:left-0 bg-blue-600 rounded-full transition-all duration-300 ease-out"
+            className="absolute inset-y-0  not-[]:left-0 bg-[#7188AB] rounded-full transition-all duration-300 ease-out"
             style={{
               width: `${fPercent}%`,
               height: "16px",
@@ -485,7 +485,7 @@ export default function Slider() {
                 height: "28px",
                 flexShrink: 0,
                 backgroundColor: "#FFF",
-                border: "1px solid var(--Color-Blue-700, #1D4ED8)",
+                border: "1px solid black",
                 filter: "drop-shadow(0 4px 4px rgba(59, 107, 240, 0.10))",
                 transform: "translateX(-50%)",
               }}

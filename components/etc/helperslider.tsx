@@ -141,7 +141,7 @@ export default function HelperSlider({ onChange }: Props) {
                     aspectRatio: "1/1",
                     backgroundColor: "var(--Color-Blue-200, #BFDBFE)",
                     borderRadius: "50%",
-                    marginLeft: i === 0 ? "4px" : i === max ? "-4px" : "0px",
+                    marginLeft: i === 0 ? "8px" : i === fMax ? "-8px" : "-4px",
                   }}
                 />
               ))}
@@ -240,7 +240,7 @@ export default function HelperSlider({ onChange }: Props) {
                     aspectRatio: "1/1",
                     backgroundColor: "var(--Color-Blue-200, #BFDBFE)",
                     borderRadius: "50%",
-                    marginLeft: i === 0 ? "4px" : i === fMax ? "-4px" : "0px",
+                    marginLeft: i === 0 ? "8px" : i === fMax ? "-8px" : "-4px",
                   }}
                 />
               ))}

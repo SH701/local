@@ -1,0 +1,18 @@
+// tailwind.config.js
+module.exports = {
+  theme: {
+    extend: {
+      keyframes: {
+        smoothFade: {
+          "0%": { opacity: 0, transform: "translateY(10px)" },
+          "20%": { opacity: 1, transform: "translateY(0)" },
+          "80%": { opacity: 1, transform: "translateY(0)" },
+          "100%": { opacity: 0, transform: "translateY(10px)" },
+        },
+      },
+      animation: {
+        smoothFade: "smoothFade 2s ease-in-out forwards", // 1번만 실행
+      },
+    },
+  },
+};

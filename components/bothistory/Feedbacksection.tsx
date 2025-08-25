@@ -45,8 +45,8 @@ export default function FeedbackSection({ id }: { id: number | string }) {
   };
 
   return (
-    <div className="px-5 py-3 bg-gray-50 space-y-3">
-      <div className="bg-white p-4 border rounded-2xl border-[#E5E7EB]">
+    <div className="px-5 py-2.5 bg-[#F3F4F6] space-y-4">
+      <div className="bg-white my-2.5 p-5 border rounded-2xl border-[#E5E7EB]">
         <p className="text-sm text-gray-700">{feedback.overallEvaluation}</p>
       </div>
       <div className="space-y-2">
@@ -73,7 +73,7 @@ export default function FeedbackSection({ id }: { id: number | string }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-4 mt-[34px]">
+      <div className="flex items-center justify-center gap-4 mt-6 pb-2">
         <button
           onClick={viewfeedback}
           className="px-4 min-w-[120px] h-9 text-white bg-blue-600 rounded-[8px] cursor-pointer"

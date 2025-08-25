@@ -7,19 +7,7 @@ import { ChevronLeftIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/lib/UserContext";
-
-const intimacyMap = {
-  0: "lowIntimacy",
-  1: "mediumIntimacy",
-  2: "highIntimacy",
-};
-
-// formality 변환
-const formalityMap = {
-  0: "lowFormality",
-  1: "mediumFormality",
-  2: "highFormality",
-};
+import { useRecorder } from "@/hooks/useRecorder";
 
 export default function HonorificHelper() {
   const { accessToken } = useAuth();
@@ -29,6 +17,7 @@ export default function HonorificHelper() {
   const [result, setResult] = useState("");
   const [explain, setExplain] = useState("");
   const [allResults, setAllResults] = useState<any>(null);
+  const { isRecording, startRecording, stopRecording } = useRecorder();
 
   const [formality, setFormality] = useState<
     "lowFormality" | "mediumFormality" | "highFormality"
@@ -39,7 +28,7 @@ export default function HonorificHelper() {
     | "mediumIntimacyExpressions"
     | "distantIntimacyExpressions"
   >("mediumIntimacyExpressions");
-
+  const [recording, setRecording] = useState(false);
   const handleTranslate = async () => {
     try {
       setLoading(true);
@@ -92,7 +81,59 @@ export default function HonorificHelper() {
       console.error("TTS 에러:", e);
     }
   };
+  const handleSTT = async (url: string) => {
+    const res = await fetch("/api/language/stt", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ audioUrl: url }),
+    });
 
+    if (!res.ok) throw new Error("STT 요청 실패");
+
+    const text = await res.text();
+    setSource(text);
+  };
+  const handleMicClick = async () => {
+    if (isRecording) {
+      const file = await stopRecording();
+      setRecording(false);
+
+      // 1. presigned URL 요청
+      const res = await fetch("/api/files/presigned-url", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          fileType: "audio.wav",
+          fileExtension: "wav",
+        }),
+      });
+
+      if (!res.ok) throw new Error("presigned-url 요청 실패");
+      const { url: presignedUrl } = await res.json();
+
+      // 2. S3 업로드
+      await fetch(presignedUrl, {
+        method: "PUT",
+        headers: { "Content-Type": "audio/wav" },
+        body: file,
+      });
+
+      // 3. 최종 URL
+      const audioUrl = presignedUrl.split("?")[0];
+
+      // 4. 메시지 전송 (텍스트 없이 오디오만)
+      await handleSTT(audioUrl);
+    } else {
+      startRecording();
+      setRecording(true);
+    }
+  };
   return (
     <div className="h-screen bg-gray-50 flex flex-col w-full overflow-y-auto">
       {/* 헤더 */}
@@ -113,10 +154,11 @@ export default function HonorificHelper() {
       <div className="flex-1 px-6 pt-6 ">
         <div className="w-[335px] flex-shrink-0 rounded-2xl border border-gray-200 bg-white mx-auto mb-6 px-6 placeholder:text-gray-400 ">
           {/* 입력 영역 */}
-          <div className="mb-3 pt-6">
+          <div className="mb-3 pt-6 relative">
+            {/* textarea */}
             <textarea
-              className="resize-none w-full h-22 border-none focus:ring-0 font-pretendard focus:outline-none placeholder:text-lg"
-              placeholder="Plaese enter the polite sentence in English of Korean"
+              className="resize-none w-full h-22  rounded-md pr-10 font-pretendard focus:ring-0 focus:outline-none placeholder:text-gray-400"
+              placeholder="Please enter the polite sentence in English or Korean."
               value={source}
               onChange={(e) => setSource(e.target.value)}
               onKeyDown={(e) => {
@@ -126,14 +168,33 @@ export default function HonorificHelper() {
                 }
               }}
               style={{
-                color: "var(--Natural-cool-gray-400, #374151)",
+                color: "#374151",
                 fontFamily: "Pretendard",
                 fontSize: "16px",
-                fontStyle: "normal",
                 fontWeight: "400",
                 lineHeight: "normal",
               }}
             />
+
+            {/* 마이크 버튼 (textarea 오른쪽에 오버레이) */}
+            <button
+              type="button"
+              onClick={handleMicClick}
+              className="absolute top-5 right-0 text-blue-500 rounded-full bg-blue-200 p-2 cursor-pointer size-9 flex justify-center items-center"
+            >
+              {recording ? (
+                <Image
+                  src="/etc/pause.png"
+                  alt="pause"
+                  width={16}
+                  height={16}
+                />
+              ) : (
+                <Image src="/etc/mic.png" alt="mic" width={20} height={20} />
+              )}
+            </button>
+
+            {/* Submit 버튼 */}
             <div className="flex justify-end">
               <button
                 onClick={handleTranslate}
@@ -175,7 +236,7 @@ export default function HonorificHelper() {
               </div>
             ) : (
               <textarea
-                className="resize-none w-full h-24 border-none focus:ring-0 font-pretendard"
+                className="resize-none w-full h-24 border-none focus:ring-0 focus:outline-none font-pretendard"
                 placeholder=""
                 value={result}
                 readOnly
